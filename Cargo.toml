@@ -7,3 +7,15 @@ license = "MIT"
 description = "Beancounter provides a proc macro for visualizing struct memory usage."
 repository = "https://github.com/whiterabbittech/beancounter"
 exclude = ["/Makefile.toml", ".github/", "/.gitignore"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0.37"
+syn = { version="1.0.91", features=["extra-traits"] }
+quote = "1.0.18"
+size_format = "1.0.2"
+
+[dev-dependencies]
+pretty_assertions = "1.2.1"
