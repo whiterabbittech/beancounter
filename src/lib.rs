@@ -26,7 +26,7 @@ pub fn print_size(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 }
 
 #[allow(dead_code)]
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 struct AllocSize {
     num_bytes: u64,
 }
@@ -59,137 +59,139 @@ impl fmt::Display for AllocSize {
 /// StackSized is implementable for Sized types.
 /// It reports the size in bytes of the type when stack allocated.
 trait StackSized {
-    fn stack_size(&self) -> AllocSize;
+    fn stack_size() -> AllocSize;
 }
 
 impl StackSized for () {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for bool {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for u8 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for u16 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for u32 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for u64 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for u128 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for i8 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for i16 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for i32 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for i64 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for i128 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for f32 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for f64 {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for char {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for usize {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl StackSized for isize {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
 impl<T> StackSized for Box<T> {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
-impl<T> StackSized for &T {
-    fn stack_size(&self) -> AllocSize {
-        AllocSize::from(size_of::<Self>())
+impl<'a, T: 'a> StackSized for &'a T {
+    fn stack_size() -> AllocSize {
+        let val = size_of::<Self>();
+        AllocSize::from(val)
     }
 }
 
 impl<T> StackSized for *const T {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
 
-impl<T> StackSized for Option<&T> {
-    fn stack_size(&self) -> AllocSize {
-        AllocSize::from(size_of::<Self>())
+impl<T: 'static> StackSized for Option<&T> {
+    fn stack_size() -> AllocSize {
+        let val = size_of::<Self>();
+        AllocSize::from(val)
     }
 }
 
 impl<T> StackSized for Option<Box<T>> {
-    fn stack_size(&self) -> AllocSize {
+    fn stack_size() -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
 }
@@ -202,119 +204,119 @@ mod tests {
     #[test]
     fn unit_stack_size() {
         let expected = AllocSize::from(0u64);
-        let observed = ().stack_size();
+        let observed = <()>::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn bool_stack_size() {
         let expected = AllocSize::from(1u64);
-        let observed = true.stack_size();
+        let observed = bool::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn u8_stack_size() {
         let expected = AllocSize::from(1u64);
-        let observed = 0u8.stack_size();
+        let observed = u8::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn u16_stack_size() {
         let expected = AllocSize::from(2u64);
-        let observed = 0u16.stack_size();
+        let observed = u16::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn u32_stack_size() {
         let expected = AllocSize::from(4u64);
-        let observed = 0u32.stack_size();
+        let observed = u32::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn u64_stack_size() {
         let expected = AllocSize::from(8u64);
-        let observed = 0u64.stack_size();
+        let observed = u64::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn u128_stack_size() {
         let expected = AllocSize::from(16u64);
-        let observed = 0u128.stack_size();
+        let observed = u128::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn i8_stack_size() {
         let expected = AllocSize::from(1u64);
-        let observed = 0i8.stack_size();
+        let observed = i8::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn i16_stack_size() {
         let expected = AllocSize::from(2u64);
-        let observed = 0i16.stack_size();
+        let observed = i16::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn i32_stack_size() {
         let expected = AllocSize::from(4u64);
-        let observed = 0i32.stack_size();
+        let observed = i32::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn i64_stack_size() {
         let expected = AllocSize::from(8u64);
-        let observed = 0i64.stack_size();
+        let observed = i64::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn i128_stack_size() {
         let expected = AllocSize::from(16u64);
-        let observed = 0i128.stack_size();
+        let observed = i128::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn f32_stack_size() {
         let expected = AllocSize::from(4u64);
-        let observed = 0f32.stack_size();
+        let observed = f32::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn f64_stack_size() {
         let expected = AllocSize::from(8u64);
-        let observed = 0f64.stack_size();
+        let observed = f64::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn char_stack_size() {
         let expected = AllocSize::from(4u64);
-        let observed = '0'.stack_size();
+        let observed = char::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn box_stack_size() {
-        let expected = 0usize.stack_size();
-        let observed = Box::new(0).stack_size();
+        let expected = usize::stack_size();
+        let observed = <Box<i32>>::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn reference_stack_size() {
-        let expected = 0usize.stack_size();
-        let observed = (&0usize).stack_size();
+        let expected = usize::stack_size();
+        let observed = <&usize>::stack_size();
         assert_eq!(expected, observed);
     }
 
@@ -322,36 +324,31 @@ mod tests {
     /// there is necessarily a reference involved.
     /// &i32 returns 32 bits when it's obviously 64-bits in actual size.
     #[test]
-    #[ignore]
     fn reference_stack_size2() {
-        let value = -10i32;
-        let reference = &value;
         // All references should be the same size as usize.
-        let expected = 0usize.stack_size();
-        let observed = (reference).stack_size();
+        let expected = usize::stack_size();
+        let observed = <&i32>::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn const_stack_size() {
-        let integer: i32 = 10;
-        let ptr: *const i32 = &integer;
-        let expected = 0usize.stack_size();
-        let observed = ptr.stack_size();
+        let expected = usize::stack_size();
+        let observed = <*const i32>::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn option_reference_stack_size() {
-        let expected = 0usize.stack_size();
-        let observed = Some(&0).stack_size();
+        let expected = usize::stack_size();
+        let observed = <Option<&bool>>::stack_size();
         assert_eq!(expected, observed);
     }
 
     #[test]
     fn option_box_stack_size() {
-        let expected = 0usize.stack_size();
-        let observed = Some(Box::new(0)).stack_size();
+        let expected = usize::stack_size();
+        let observed = <Option<Box<bool>>>::stack_size();
         assert_eq!(expected, observed);
     }
 }
