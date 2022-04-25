@@ -164,7 +164,31 @@ impl StackSized for isize {
     }
 }
 
-impl<T: Sized> StackSized for Box<T> {
+impl<T> StackSized for Box<T> {
+    fn stack_size(&self) -> AllocSize {
+        AllocSize::from(size_of::<Self>())
+    }
+}
+
+impl<T> StackSized for &T {
+    fn stack_size(&self) -> AllocSize {
+        AllocSize::from(size_of::<Self>())
+    }
+}
+
+impl<T> StackSized for *const T {
+    fn stack_size(&self) -> AllocSize {
+        AllocSize::from(size_of::<Self>())
+    }
+}
+
+impl<T> StackSized for Option<&T> {
+    fn stack_size(&self) -> AllocSize {
+        AllocSize::from(size_of::<Self>())
+    }
+}
+
+impl<T> StackSized for Option<Box<T>> {
     fn stack_size(&self) -> AllocSize {
         AllocSize::from(size_of::<Self>())
     }
@@ -284,6 +308,50 @@ mod tests {
     fn box_stack_size() {
         let expected = 0usize.stack_size();
         let observed = Box::new(0).stack_size();
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn reference_stack_size() {
+        let expected = 0usize.stack_size();
+        let observed = (&0usize).stack_size();
+        assert_eq!(expected, observed);
+    }
+
+    /// BUG: The method is implemented on &self, which means
+    /// there is necessarily a reference involved.
+    /// &i32 returns 32 bits when it's obviously 64-bits in actual size.
+    #[test]
+    #[ignore]
+    fn reference_stack_size2() {
+        let value = -10i32;
+        let reference = &value;
+        // All references should be the same size as usize.
+        let expected = 0usize.stack_size();
+        let observed = (reference).stack_size();
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn const_stack_size() {
+        let integer: i32 = 10;
+        let ptr: *const i32 = &integer;
+        let expected = 0usize.stack_size();
+        let observed = ptr.stack_size();
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn option_reference_stack_size() {
+        let expected = 0usize.stack_size();
+        let observed = Some(&0).stack_size();
+        assert_eq!(expected, observed);
+    }
+
+    #[test]
+    fn option_box_stack_size() {
+        let expected = 0usize.stack_size();
+        let observed = Some(Box::new(0)).stack_size();
         assert_eq!(expected, observed);
     }
 }
