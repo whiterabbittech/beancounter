@@ -16,6 +16,8 @@ proc-macro2 = "1.0.37"
 syn = { version="1.0.91", features=["extra-traits"] }
 quote = "1.0.18"
 size_format = "1.0.2"
+serde = { version="1.0.136", features=["derive"] }
+
 
 [dev-dependencies]
 pretty_assertions = "1.2.1"
